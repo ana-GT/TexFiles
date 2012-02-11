@@ -1,0 +1,85 @@
+%%%%%%%%%%%%%%%%%%%% BlackSheep.tex %%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Packages %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[graybox]{svmult}
+
+\usepackage{mathptmx}      
+\usepackage{helvet}        
+\usepackage{courier}       
+\usepackage{type1cm}       
+
+\usepackage{makeidx}        
+\usepackage{graphicx}       
+
+\usepackage{multicol}       
+\usepackage[bottom]{footmisc}
+
+\makeindex 
+
+% Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\title*{Bounded Diverse Paths and their application in Path Planning}
+\author{Ana Huam\'an Quispe and Mike Stilman}
+\institute{Ana Huam\'an Quispe \at Center for Robotics and Intelligent Machines, Georgia Institute of Technology,Atlanta GA,\\ \email{ahuaman3@gatech.edu}
+\and Mike Stilman \at Center for Robotics and Intelligent Machines, Georgia Institute of Technology, Atlanta GA \\ \email{mstilman@cc.gatech.edu}}
+
+\maketitle
+
+% Abstract %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\abstract{We present a formal definition of Bounded Diverse Paths and how this approach can be applied in Path Planning.\newline\indent
+Our approach rests on principles of Digital Imagery as well as Optimal Control. We show its application to a practical problem, such as how to find diverse paths.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+\section{Introduction}
+\label{sec:Introduction}
+Homotopy, for our purposes is a hard concept to grasp in 3D
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Related Work}
+\label{sec:RelatedWork}
+Here we can cite work of Likhachev et al, and stuff about Distance Transform such as the work of Pedro Fzelnzab as well as the application of Distance Transforms to Path Planning, although its goal was different than ours
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Homotopy classes}
+
+% -----------------------------------------------
+\label{subsec:HomotopyClasses}
+Instead of simply listing headings of different levels we recommend to
+let every heading be followed by at least a short passage of text.
+Further on please use the \LaTeX\ automatism for all your
+cross-references\index{cross-references} and citations\index{citations}
+as has already been described in Sect.~\ref{sec:2}.
+
+\begin{quotation}
+Please do not use quotation marks when quoting texts! Simply use the \verb|quotation| environment -- it will automatically render Springer's preferred layout.
+\end{quotation}
+
+% .....................................................
+\subsubsection{Homotopy in 2D spaces}
+Problem pretty much solved by Stilman and Likhachev
+
+% .....................................................
+\subsubsection{Homotopy in 3D spaces}
+Why it is hard
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Definitions}
+\label{sec:Definitions}
+
+% Definition of a Function
+\begin{definition}
+A \textit{function f} is a rule of correspondence that assigns to each element \textbf{q} in a certain set $\mathcal{D}$ a unique element in a set $\mathcal{R}$. $\mathcal{D}$ is called the \textit{domain} of \textit{f} and $\mathcal{R}$ is the \textit{range}
+\end{definition}
+
+% Definition of the Distance Transform Function
+\begin{definition}
+
+\end{definition}
+
+\input{references}
+\end{document}
