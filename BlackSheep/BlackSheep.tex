@@ -272,6 +272,7 @@ Now we have all the needed definitions to formally enunciate our problem:
 % .....................................................
 % Problem Definition
 \begin{definition}[Diverse Paths Problem]
+\label{def:DiversePathProblem}
 For a search space \Graph we define a start and target locations, represented by the vertices $v_{start}$ and $v_{target} \in \VertexSet$.  We want to find a set of paths $\PathSet$ that hold the following conditions:
 
 \begin{itemize}
@@ -292,6 +293,14 @@ In the next section, we present an algorithm to systematically build $\PathSet$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Section
 \section{Algorithm}
+Let us formulate the problem as an \emph{optimization problem}, and then we will intuitively derive the algorithm presented.
+
+From Definition \ref{DiversePathProblem}, we observe that our goal is to obtain a \emph{sequence} of paths, in which $\Path_{i+1}$ has a relationship with respect to the \emph{previous paths} ( $\Path_{1}$, $\Path_{2}$,...,$\Path_{i}$ ). Hence, we can formulate the problem by solving it sequentially.
+\medskip
+
+Now, our premise is that $\Path_{i+1}$ must maximize the distance between itself and the other previous paths. So, we can say that we want to maximize this expression:
+
+\[ \Path_{i+1} = \argmax _{\forall \Path \in Q} f(\Path) = \AddedDistance (\Path, \PathSet) \]
 
 \begin{algorithm}
 
