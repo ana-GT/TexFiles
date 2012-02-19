@@ -10,6 +10,7 @@
 %\usepackage{courier}       
 \usepackage{type1cm}       
 \usepackage{amsfonts}
+\usepackage{amsmath}
 \usepackage{makeidx}       
 \usepackage{graphics}  
 \usepackage{graphicx}     
@@ -22,6 +23,7 @@
 
 % New Commands
 \newcommand{\PathSet}{\ensuremath{\mathcal P} }
+\newcommand{\PathSequence}{\ensuremath{\mathcal P} }
 \newcommand{\PathSetDistance}{\ensuremath{\mathcal G} }
 \newcommand{\Z}{\mathbb{Z} }
 \newcommand{\Path}{\ensuremath{P} }
@@ -41,6 +43,9 @@
 \newcommand{\VertexSetDistance}{\ensuremath{D_{VS}} }
 \newcommand{\AddedDistance}{\ensuremath{D_{added}} }
 
+% Math talking...holy cow
+\DeclareMathOperator*{\argmin}{arg\,min} 
+\DeclareMathOperator*{\argmax}{arg\,max} 
 
 % Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -258,7 +263,7 @@ Given a path $\Path \in \VertexSet$ and a set $\Set \in \VertexSet$. We define t
 
 Based on Definition \ref{def:AddedDistance}, a special case occurs when the set $\Set$ is the union of a set of paths $\PathSet$:
 
-\[ \PathSet = \bigcup_{i = 1}^{k} \Path_{k} = \Path_{1} \cup \Path_{2} \cup ... \cup \Path_{k} \] 
+\[ \PathSet = \bigcup_{i = 1}^{k} \Path_{i} = \Path_{1} \cup \Path_{2} \cup ... \cup \Path_{k} \] 
 
 Then, the Added Distance from a path $P_{k+1}$ with respect to this set of paths $\PathSet$ is:
 
@@ -272,19 +277,34 @@ Now we have all the needed definitions to formally enunciate our problem:
 % .....................................................
 % Problem Definition
 \begin{definition}[Diverse Paths Problem]
+<<<<<<< HEAD
 \label{def:DiversePathProblem}
 For a search space \Graph we define a start and target locations, represented by the vertices $v_{start}$ and $v_{target} \in \VertexSet$.  We want to find a set of paths $\PathSet$ that hold the following conditions:
+=======
+For a search space \Graph we define start and target vertices $v_{start}$ and $v_{target} \in \VertexSet$.  We want to find a \emph{sequence} of $k$ paths:
+
+\[ \PathSequence = ( \Path_{1}, \Path_{2}, \Path_{3}..., \Path_{k} )  \]
+
+such that they hold the following properties:
+>>>>>>> afc5d43fd576c90cbb0bcb54a7f03ca860157684
 
 \begin{itemize}
-\item{$\PathSet$ must always contain the shortest path from $v_{start}$ to $v_{target}$ ($\Path^{*}$)  }
-\item{The paths belonging to $\PathSet$ must be bounded in length with respect to $\Path^{*}$. Formally:
+\item{ $ \forall \Path_{i} \in \PathSequence, {p_{i}}_{1} = v_{start}$ and ${p_{i}}_{n} = v_{target}$}
+\item{ $\Path_{1}$ must be the shortest path from $v_{start}$ to $v_{target}$ }
+\item{The paths belonging to $\PathSet$ must be bounded in length with respect to $\Path_{1}$. Formally:
 \begin{equation} 
-\forall \Path_{i} \in \PathSet, \left | \Path_{i} \right | \leq \alpha \left| \Path^{*} \right |, \alpha \geq 1 
+\forall \Path_{i} \in \PathSet, \left | \Path_{i} \right | \leq \alpha \left| \Path_{1} \right |, \alpha \geq 1, \forall i \in <1, k ] 
 \label{eq:LengthBound}
 \end{equation}
 
-This condition allows to avoid considering paths excessively long}
-\item{The added distance $\AddedDistance$ between a path $\Path_{i}$ and $\PathSet \setminus \Path_{i}$ (the remaining paths in $\PathSet$) is a maximum. Meaning, there is \textbf{no other path} that can have a greater $\AddedDistance$ than $\Path_{i}$ (and that simultaneously holds the condition in (\ref{eq:LengthBound}) }
+This condition imposes a constraint on the maximum length of candidate paths}
+\item{Each path $\Path_{i}$ is as far as possible from its predecessors in $\PathSequence$. The metric to express this distance is the $\AddedDistance$:
+	\begin{equation}
+		\Path_{i} = \argmax_{\Path_{i}}  \{ \AddedDistance ( \Path_{i}, \{ \Path _{1},...\Path _{i-1} \} ) \}
+		\label{eq:MaxDistance}	
+	\end{equation}
+}
+
 \end{itemize}
 \end{definition}
 
