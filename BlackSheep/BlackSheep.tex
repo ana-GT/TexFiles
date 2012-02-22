@@ -15,7 +15,7 @@
 \usepackage{graphics}  
 \usepackage{graphicx}     
 \usepackage{subfigure}  
-\usepackage{algorithm2e}
+\usepackage[ruled,vlined]{algorithm2e}
 \usepackage{multicol}       
 \usepackage[bottom]{footmisc}
 
@@ -403,8 +403,83 @@ which represents the penalization for the length added per each node. $\alpha$ c
 
 From the expressions above, it is easily seen that the costs of each node are always positive, hence we can apply a graph-search algorithm to find the paths, according to the cost expressions just defined. The algorithm is shown: 
 
-\begin{algorithm}
+% -------------------------------------
+% FindSequencePaths Algorithm
 
+\begin{algorithm}
+\caption{ Find-Sequence-Paths($\VertexSet$, $\EdgeSet$, $k$, $v_{start}$, $v_{target}$) }
+\dontprintsemicolon
+\SetKwFunction{ResetSearch}{ResetSearch()}
+\SetKwFunction{FindPath}{FindPath}
+\SetKwFunction{UpdateNodeValues}{UpdateNodeValues}
+
+\BlankLine
+
+$\PathSet = \emptyset $ \;
+\ResetSearch \;
+\BlankLine
+
+\For{$i \leftarrow 1$ \KwTo $k$}{
+	$\Path_{i}$ = \FindPath{$v_{start}$,$v_{target}$} \;
+	\PathSet.\FuncSty{add($\Path_{i}$)} \;
+	\ResetSearch \;
+	\UpdateNodeValues{$\PathSet$} \; 	
+}
+\Return \PathSet \;
+\label{alg:FindVarietyPath}
+\end{algorithm}
+
+% -----------------------------------
+% Reset Algorithm -- lame
+\begin{algorithm}
+\ForAll{$v \in \VertexSet$}{
+	$v.\FuncSty{costF} \leftarrow \infty$ \;
+	$v.\FuncSty{costG} \leftarrow \infty$ \;
+	$v.\FuncSty{costH} \leftarrow \infty$ \;
+	$v.\FuncSty{status} \leftarrow \textsc{NO\_VISITED}$ \;
+	$v.\FuncSty{value} \leftarrow 0$ \;
+}
+
+$\ArgSty{OpenSet} \leftarrow \emptyset$
+\caption{ \FuncSty{ResetSearch()} }
+\end{algorithm}
+
+% ----------------------------------------
+% FindPath
+\begin{algorithm}
+\SetKwFunction{PushOpenSet}{PushOpenSet}
+\SetKwFunction{PopOpenSet}{PopOpenSet}
+\SetKwFunction{BacktracePath}{BacktracePath}
+\SetKwFunction{EdgeCost}{EdgeCost}
+
+\BlankLine
+
+$v_{start}.\FuncSty{costG} \leftarrow 0$ \;
+$v_{start}.\FuncSty{costH} \leftarrow v.\FuncSty{Heuristic}(v_{target})$ \;
+$v_{start}.\FuncSty{costF} \leftarrow v_{start}.\FuncSty{costG} + v_{start}.\FuncSty{costH}$\;
+$v_{start}.\FuncSty{parent} \leftarrow -1$
+\BlankLine
+\PushOpenSet{$v_{start}$} \;
+$\ArgSty{iter} \leftarrow 0$ \;
+
+\While{ $\ArgSty{iter} < \ArgSty{maxIter}$}{
+	$v = \PopOpenSet{}$ \;
+	\If(){$v == v_{target}$}{
+     	\BacktracePath{x} \;	
+	}
+    $v.\FuncSty{status} \leftarrow \textsc{IN\_CLOSED\_SET} $ \;
+    
+    \ForAll{ $v_{n} \in v.\FuncSty{neighbors}$}{
+    	\If{$v_{n}.\FuncSty{status} == IN\_CLOSED\_SET$}{
+    		continue \;
+    	}
+    	$\FuncSty{costG}^{\prime} \leftarrow v.\FuncSty{costG} +$ \EdgeCost{$v,v_{n}$} $\times (v_{n}.\FuncSty{value} + \alpha \times 1)$ \; 
+    	\If{$v_{n}.\FuncSty{status} \neq IN\_OPEN\_SET$}{
+    		
+    	}
+    }
+}
+\caption{ \FuncSty{FindPath($v_{start}$,$v_{target}$)} }
 \end{algorithm}
 
 \bibliographystyle{plain}
