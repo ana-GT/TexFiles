@@ -445,13 +445,14 @@ $\ArgSty{OpenSet} \leftarrow \emptyset$
 \end{algorithm}
 
 % ----------------------------------------
-% FindPath
+% FindPath Algorithm
 \begin{algorithm}
 \SetKwFunction{PushOpenSet}{PushOpenSet}
 \SetKwFunction{PopOpenSet}{PopOpenSet}
+\SetKwFunction{ReorderOpenSet}{ReorderOpenSet}
 \SetKwFunction{BacktracePath}{BacktracePath}
 \SetKwFunction{EdgeCost}{EdgeCost}
-
+\SetKwFunction{HeuristicCost}{HeuristicCost}
 \BlankLine
 
 $v_{start}.\FuncSty{costG} \leftarrow 0$ \;
@@ -462,27 +463,76 @@ $v_{start}.\FuncSty{parent} \leftarrow -1$
 \PushOpenSet{$v_{start}$} \;
 $\ArgSty{iter} \leftarrow 0$ \;
 
-\While{ $\ArgSty{iter} < \ArgSty{maxIter}$}{
+\While{ \ArgSty{OpenSet} $\neq \emptyset$ }{
+	\BlankLine 
 	$v = \PopOpenSet{}$ \;
+	\BlankLine
 	\If(){$v == v_{target}$}{
-     	\BacktracePath{x} \;	
+     	\BacktracePath{x} \;
+     	\FuncSty{break} \;	
 	}
     $v.\FuncSty{status} \leftarrow \textsc{IN\_CLOSED\_SET} $ \;
     
     \ForAll{ $v_{n} \in v.\FuncSty{neighbors}$}{
-    	\If{$v_{n}.\FuncSty{status} == IN\_CLOSED\_SET$}{
-    		continue \;
-    	}
+    	\If{$v_{n}.\FuncSty{status} == IN\_CLOSED\_SET$}{ \FuncSty{continue} \; }
     	$\FuncSty{costG}^{\prime} \leftarrow v.\FuncSty{costG} +$ \EdgeCost{$v,v_{n}$} $\times (v_{n}.\FuncSty{value} + \alpha \times 1)$ \; 
     	\If{$v_{n}.\FuncSty{status} \neq IN\_OPEN\_SET$}{
-    		
+    		$v_{n}.\FuncSty{parent} \leftarrow v $ \;
+    		$v_{n}.\FuncSty{costG} \leftarrow \FuncSty{costG}^{\prime}$ \;
+    		$v_{n}.\FuncSty{costH} \leftarrow$ \HeuristicCost{$v_{n}$,$v_{target}$} $\times ( 0 + \alpha \times 1 )$ \;
+    		$v_{n}.\FuncSty{costF} \leftarrow .\FuncSty{costG} + .\FuncSty{costH}$	 \;
+    		\PushOpenSet{$v_{n}$} \;
+    	}
+    	\Else{
+    		\If{ $\FuncSty{costG}^{\prime} < v_{n}.\FuncSty{costG}$ }{
+    			$v_{n}.\FuncSty{parent} \leftarrow v $ \;
+    			$v_{n}.\FuncSty{costG} \leftarrow \FuncSty{costG}^{\prime} $ \;
+    			$v_{n}.\FuncSty{costH} \leftarrow$  \HeuristicCost{$v_{n}$, $v_{target}$} $\times (0+ \alpha \times 1)$
+    			$v_{n}.\FuncSty{costF} \leftarrow .\FuncSty{costG} + .\FuncSty{costH}$	 \;
+    		    \ReorderOpenSet{$v_{n}$} \;
+    		}
     	}
     }
 }
 \caption{ \FuncSty{FindPath($v_{start}$,$v_{target}$)} }
 \end{algorithm}
 
+% -------------------------------
+% UpdateNodeValues
+\begin{algorithm}
+\SetKwFunction{Brushfire}{Brushfire}
+
+\Brushfire{$\VertexSet$, $\PathSet$} \;
+\ArgSty{$dist_{max}$} $\leftarrow \argmax_{v_{i} \in \VertexSet} \{ v_{i}.\FuncSty{distance} \}$ \;
+\BlankLine
+\ForAll {$v \in \VertexSet$ }{
+	$v.\FuncSty{value} \leftarrow \dfrac{dist_{max} - v.\FuncSty{distance}}{dist_{max}}$ \;
+}
+\caption{\FuncSty{Update-Node-Values($\PathSet$)}}
+\end{algorithm}
+
+% ----------------------------------------------
+% Brushfire Algorithm
+\begin{algorithm}
+
+\caption{ \FuncSty{Brushfire($\VertexSet$, $\PathSet$)} }
+\end{algorithm}
+
 \bibliographystyle{plain}
 \bibliography{references}
+
+% ------------------------------------------------
+% Experiments
+\section{Experiments}
+
+
+% -------------------------------------------------
+% Conclusions
+\section{Conclusions}
+
+% --------------------------------------------------
+% Acknowledgments
+\section{Acknowledgments}
+We thank to all people who gave feedback during the writing process.
 
 \end{document}
