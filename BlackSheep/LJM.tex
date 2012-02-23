@@ -1,0 +1,629 @@
+%%%%%%%%%%%%%%%%%%%% BlackSheep.tex %%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Packages %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[graybox]{svmult}
+
+\usepackage{mathptmx}      
+%\usepackage{helvet} 
+\usepackage[latin1]{inputenc}    % I want to see how it looks with this font    
+%\usepackage{courier}       
+\usepackage{type1cm}       
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{makeidx}       
+\usepackage{graphics}  
+\usepackage{graphicx}     
+\usepackage{subfigure}  
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{multicol}       
+\usepackage[bottom]{footmisc}
+
+\makeindex 
+
+% New Commands
+\newcommand{\PathSet}{\ensuremath{\mathcal P} }
+\newcommand{\PathSequence}{\ensuremath{\mathcal P} }
+\newcommand{\PathSetDistance}{\ensuremath{\mathcal G} }
+\newcommand{\Z}{\mathbb{Z} }
+\newcommand{\Path}{\ensuremath{P} }
+\newcommand{\DCS}{\ensuremath{\Omega} }
+\newcommand{\PathDistance}{\textsl{PD} }
+\newcommand{\Q}{\textsl{Q} }
+
+% Graph
+\newcommand{\Graph}{\ensuremath{\mathcal G} }
+\newcommand{\VertexSet}{\ensuremath{\mathcal V} }
+\newcommand{\EdgeSet}{\ensuremath{\mathcal E} }
+
+\newcommand{\MetricSpace}{\ensuremath{\mathcal M} }
+\newcommand{\DistanceMetric}{\ensuremath{d_{min}} }
+
+\newcommand{\Set}{\ensuremath{\textsl S} }
+\newcommand{\VertexSetDistance}{\ensuremath{D_{VS}} }
+\newcommand{\AddedDistance}{\ensuremath{D_{added}} }
+\newcommand{\Dmax}{\ensuremath{D_{max}} }
+
+% Math talking...holy cow
+\DeclareMathOperator*{\argmin}{arg\,min} 
+\DeclareMathOperator*{\argmax}{arg\,max} 
+
+% Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\title*{Bounded Diverse Paths and their application in Path Planning}
+\author{Ana Huam\'an Quispe and Mike Stilman}
+\institute{Center for Robotics and Intelligent Machines, Georgia Institute of Technology,Atlanta GA,\\ \email{ahuaman3@gatech.edu, mstilman@cc.gatech.edu}}
+
+\maketitle
+
+% Abstract %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\abstract{We present a formal definition of Bounded Diverse Paths and how this approach can be applied to Path Planning.\newline\indent
+Our approach rests on principles of Digital Imagery as well as Optimal Control. We show its application to a practical problem, such as how to find diverse paths.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+\section{Introduction}
+\label{sec:Introduction}
+Motion planning problems usually refer to the canonical problem of computing collision-free paths from a start to a goal position. Great efforts have been focused in developing techniques to produce \emph{optimal paths}, according to some cost metric. While this is useful in some scenarios, it is also true that there are situations in which it would be more useful to produce more than one possible path as a solution. We illustrate this better as an example:
+
+Assume that you have a robotic arm such as in Fig.\ref{fig:IntroductionStartPosition} and you want to devise a path to reach the goal position in Fig.\ref{fig:IntroductionTargetPosition}. Say that you want to solve this problem by using \emph{search-based techniques} for high-dimensional spaces, such as \cite{Cohen2011AdaptivePrimitives}, which make use of a \emph{workspace heuristic of the end effector} to guide the configuration space search. If we use a standard optimal planner to obtain the optimal path in terms of length, we would get the green path depicted in Fig.\ref{fig:IntroductionPaths}. However, from Fig.\ref{fig:IntroductionTargetPosition}, it is easily seen that the path depicted in red would be more appropiate to describe what the real end effector path would look like. 
+
+The red path would probably not be found by a standard planner since its longer than the optimal path. Hence, in this problem it makes sense for a planner to produce both paths and let the user decide which one is fit to the problem requirements. In order to produce both paths, we must establish that they are different in some way, or belong to \emph{different classes}.
+
+% ...............................................
+% Figure of Schunk and the End Effector Path
+\begin{figure}[]
+		\centering
+		  \subfigure[Start Position]{
+		   \includegraphics[width=0.4\textwidth]{figures/startPosition.png} 
+		   \label{fig:IntroductionStartPosition}
+          }
+          \subfigure[Target position]{
+	       \includegraphics[width=0.4\textwidth]{figures/targetPosition.png} 	
+	       \label{fig:IntroductionTargetPosition}
+          }
+		  \subfigure[Possible Paths]{
+		   \includegraphics[width=0.4\textwidth]{figures/Torus3DEndingPointsDrawnX.png} 
+		   \label{fig:IntroductionPaths}
+          }          
+          \caption{Application example: An optimal planner would find the green path, however the red one would be more useful}
+          \label{fig:IntroductionHeuristic}
+\end{figure}
+
+\emph{Homotopy classes} are a straightforward concept to classify paths. Two paths are homotopic if one path can be continuously  deformed into another without passing through an obstacle. A homotopy class is a collection of homotopy paths. In two-dimensional environments, each obstacle generates at least a new homotopy class (ask Mike this) as it can be seen in the example at Fig.\ref{fig:IntroductionHomo2D}. 
+
+% ...............................................
+% Figure of Homotopy Paths in 2D
+\begin{figure}[]
+		\centering
+		  \subfigure[Initial problem]{
+		   \includegraphics[width=0.3\textwidth]{figures/IntroductionHomo2Da.png} 
+		   \label{fig:IntroductionHomo2Da}
+          }
+          \subfigure[Path in Homotopy class A]{
+	       \includegraphics[width=0.3\textwidth]{figures/IntroductionHomo2Db_linee.png} 	
+	       \label{fig:IntroductionHomo2Db}
+          }
+		  \subfigure[Path in Homotopy class B]{
+		   \includegraphics[width=0.3\textwidth]{figures/IntroductionHomo2Dc_linee.png} 
+		   \label{fig:IntroductionHomo2Dc}
+          }          
+          \subfigure[Path in Homotopy class C]{
+	       \includegraphics[width=0.3\textwidth]{figures/IntroductionHomo2Dd_linee.png} 	
+	       \label{fig:IntroductionHomo2Dd}
+          }
+		  \subfigure[Path in Homotopy class D]{
+		   \includegraphics[width=0.3\textwidth]{figures/IntroductionHomo2De_linee.png} 
+		   \label{fig:IntroductionHomo2De}
+          }                   
+          \caption{Homotopy classes in 2D environments}
+          \label{fig:IntroductionHomo2D}
+\end{figure}
+
+In 3D environments, the specification of paths belonging to different homotopy classes is harder to determine, since only obstacles that contain \emph{holes} or obstacles stretching to infinity in two directions determine different homotopy classes (\cite{Bhattacharya2011Homotopy3D}). In Fig.\ref{fig:IntroductionHeuristic} the obstacle had one hole, so there were two homotopy classes, namely the set of paths that passed through the hole and the set that passed outside the obstacle. Now, think what would happen if the obstacle would have the shape shown in Fig.\ref{fig:IntroductionNoHomo3D}. The scenery is the same as in Fig. \ref{fig:IntroductionHeuristic}, with the exception that in Fig. \ref{fig:IntroductionNoHomo3D} the obstacle is not close-shaped anymore. Three paths are shown in Fig. \ref{fig:IntroductionNoHomo3DPaths}, all of them belonging to the same homotopic class. 
+
+% .....................................................................................
+% Example of Schunk in which Homotopic classification does not work as expected
+\begin{figure}[]
+		\centering
+		  \subfigure[Problem proposed]{
+		   \includegraphics[width=0.4\textwidth]{figures/IntroductionNoHomo3D.png} 
+		   \label{fig:IntroductionNoHomo3DProb}
+          }
+          \subfigure[Possible paths, all belonging to the same homotopic class]{
+	       \includegraphics[width=0.4\textwidth]{figures/IntroductionNoHomo3DObstacleX.png} 	
+	       \label{fig:IntroductionNoHomo3DPaths}
+          }
+          \caption{Application example: To classify the paths by their homotopy class is not very useful here}
+          \label{fig:IntroductionNoHomo3D}
+\end{figure}
+
+
+From the example before, we see that describing paths based on their homotopy class is, for some cases, too strict and hence it does not help much in the generation of paths that are as \emph{diverse} as possible.
+
+On this paper, we will propose a simple and intuitive method to automatically generate set of paths such that these are as \emph{diverse} as possible, making it possible to consider more than one alternative. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Related Work}
+\label{sec:RelatedWork}
+Efforts to produce different paths have been mostly related to homotopy classification. The problem of homotopy in 2D environments has been throroughly studied and there are diverse solutions present in robotics literature. The approaches are diverse, ranging from geometric methods, such as \cite{}. Later on, Schmitzberger worked on the problem by using Probabilistic Roadmaps (\cite{Schmitzberger2002Homo2D}), obtaining a planner that was able to capture paths from different homotopy classes, however these paths were not optimal, due to the intrinsic randomized nature of the PRM.
+\medskip
+5
+Bhattacharya et al presented an interesting method to find optimal paths with homotopic path constraints \cite{Bhattacharya2010Homotopy2D}, based on a weird rule that I still don't get but has something to do with my Electrical undergrad courses, for sure. Igarashi and Stilman (\cite{Igarashi2010Homotopy2D}) on the other hand, presented a simple and powerful algorithm that also generate optimal paths on different homotopy classes by using a variant of greedy search with a heuristic that build overlapping manifolds corresponding to the different homotopic classes.
+
+Path generation with homotopic constraints in 3D environments has been recently studied in \cite{Bhattacharya2011Homotopy3D} by using more weird electrical laws that are extensive to any 3D scene (i.e. a 2D dynamic environment in which the time t is the third dimension).
+
+As we saw in the introduction, Homotopy alone is not enough to get the variety we are looking for.
+ 
+ 
+Here we can cite work of Likhachev et al \cite{Bhattacharya2011Homotopy3D}, and stuff about Distance Transform such as the work of Pedro Fzelnzab as well as the application of Distance Transforms to Path Planning, although its goal was different than ours
+
+Mention coverage stuff by Zelinsky \cite{Zelinsky1993Coverage}
+
+Problem pretty much solved by Stilman \cite{Igarashi2010Homotopy2D} and Likhachev \cite{Bhattacharya2010Homotopy2D}
+
+Why it is hard and recent stuff from Knepper \cite{Knepper2012Equivalence} and roots from Simeon \cite{Simeon2000VisibilityPRM} and Jaillet \cite{Jaillet2008PathDeformation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Definitions}
+\label{sec:Definitions}
+
+% ------------------------------------
+% Search Space Definition
+\begin{definition}[Search Space]
+\label{def:SearchSpace}
+We define a general \emph{search space} as an undirected connected graph $\Graph$, with a set \VertexSet of vertices and a set \EdgeSet of edges. In this paper, we further consider: 
+\begin{itemize}
+\item{\VertexSet: A finite path-connected set of discretized \emph{free} space locations (free voxels). $\VertexSet \in \mathbb{N}^{3}$ }
+\item{\EdgeSet: A finite set of connections between two neighboring vertices $v_{i}, v_{j} \in \VertexSet$. }
+\end{itemize} 
+From the definition above, it is easy to see that occupied locations (i.e. obstacles) are not represented in \Graph. 
+\end{definition}
+
+Examples of Search Spaces are shown in Fig.\ref{fig:DiscreteSets}.  Fig.\ref{fig:PathConnectedSet} show a uniformly gridded box, where $\VertexSet$ is comprised of the free space voxels inside the colored grid. Fig.\ref{fig:ConnectedSet} shows a more complex space in which obstacles inside the box were added.
+
+\begin{figure}[]
+		\centering
+		  \subfigure[Path Connected Set]{
+		   \includegraphics[width=0.4\textwidth]{figures/PathConnectedSet.png} 
+		   \label{fig:PathConnectedSet}
+          }
+          \subfigure[Connected Set]{
+	       \includegraphics[width=0.4\textwidth]{figures/ConnectedSet.png} 	
+	       \label{fig:ConnectedSet}
+          }
+          \caption{Examples of Discrete Connected Sets}
+          \label{fig:DiscreteSets}
+\end{figure}
+
+% ---------------------------------------------
+% Path
+\begin{definition}[Path]
+Given the set \VertexSet of vertices from \Graph and two vertices $v_{a}$ and $v_{b}$, we define a path \Path as a sequence of vertices such that:
+
+\[ \Path = \{ p_{1}, p_{2},..., p_{n} \} \]
+
+such that:
+\begin{itemize}
+\item{ $p_{1} = v_{a}$, $p_{n} = v_{b}$ }
+\item{ $ (p_{i}, p_{i+1}) \in \EdgeSet, \forall p_{i} \in \Path$,  $i \in [1,n-1] $}
+\end{itemize}
+
+additionally, we define the cardinality of $\Path$: 
+\[ \mid \Path \mid = n \]
+
+\end{definition}
+% ---------------------------------------------
+% Metric Space
+\begin{definition}[Metric Space]
+\label{def:MetricSpace}
+We define the \emph{metric space} \MetricSpace based on a given search space $\Graph$  as:
+\begin{equation}
+\MetricSpace = (\VertexSet, \DistanceMetric) 
+\end{equation}
+
+where 
+
+\[ \DistanceMetric : \VertexSet \times \VertexSet \rightarrow \mathbb{R} \]
+
+$\DistanceMetric$ is the length of the shortest path connecting any vertices $v_{i}$, $v_{j} \in \VertexSet$. $\DistanceMetric$ holds the following properties:
+
+\begin{enumerate}
+\item{$\DistanceMetric(x,y) \geq 0$ }
+\item{$\DistanceMetric(x,y) = 0 \iff x = y$ }
+\item{$\DistanceMetric(x,y) = \DistanceMetric(y,x)$ }
+\item{$\DistanceMetric(x,z) \leq \DistanceMetric(x,y) + \DistanceMetric(y,z) $ }
+\end{enumerate}
+ 
+\end{definition}
+
+% ---------------------------------------------------
+% Definition Distance of a Vertex w.r.t. a Path Set
+\begin{definition}[Vertex-Set Distance]
+Consider a search space \Graph and its corresponding metric space $\MetricSpace$. Define a set of vertices $\Set$ as:
+
+\[ \Set = \{ s_{1}, s_{2},...,s_{n_{s}} \},  s_{i} \in \VertexSet \]
+
+The distance from any vertex $q \in \VertexSet$ with respect to \Set as the \emph{set distance} $\VertexSetDistance$ :
+\[ \VertexSetDistance(q, S) = \inf_{ i = [ 1,..., n_{s} ] } \{ \DistanceMetric(q, s_{i}) \} \]
+\end{definition}
+
+% ------------------------------------------------
+% Definition of Path Cost
+\begin{definition}[Added Distance]
+\label{def:AddedDistance}
+Given a path $\Path \in \VertexSet$ and a set $\Set \in \VertexSet$. We define the \emph{added distance} ($\AddedDistance$) of $\Path$ with respect to $\Set$ as:
+
+\[ \AddedDistance (\Path, \Set) = \sum _{i = 0}^{|\Path|} \VertexSetDistance(p_{i}, \Set) \]
+
+\end{definition}
+
+Based on Definition \ref{def:AddedDistance}, a special case occurs when the set $\Set$ is the union of a set of paths $\PathSet$:
+
+\[ \PathSet = \bigcup_{i = 1}^{k} \Path_{i} = \Path_{1} \cup \Path_{2} \cup ... \cup \Path_{k} \] 
+
+Then, the Added Distance from a path $P_{k+1}$ with respect to this set of paths $\PathSet$ is:
+
+\begin{equation} 
+\AddedDistance (\Path_{k+1}, \PathSet) =  \sum _{i = 0}^{|\Path_{k+1}|} \VertexSetDistance({p_{k+1}}_{i}, \PathSet) 
+\label{eq:PathDistance}
+\end{equation}
+
+Now we have all the needed definitions to formally enunciate our problem:
+
+% .....................................................
+% Problem Definition
+\begin{definition}[Diverse Paths Problem]
+
+\label{def:DiversePathProblem}
+For a search space \Graph we define a start and target locations, represented by the vertices $v_{start}$ and $v_{target} \in \VertexSet$.  We want to find a set of paths $\PathSet$ that hold the following conditions:
+
+For a search space \Graph we define start and target vertices $v_{start}$ and $v_{target} \in \VertexSet$.  We want to find a \emph{sequence} of $k$ paths:
+
+\[ \PathSequence = ( \Path_{1}, \Path_{2}, \Path_{3}..., \Path_{k} )  \]
+
+such that they hold the following properties:
+
+\begin{itemize}
+\item{ $ \forall \Path_{i} \in \PathSequence, {p_{i}}_{1} = v_{start}$ and ${p_{i}}_{n} = v_{target}$}
+\item{ $\Path_{1}$ must be the shortest path from $v_{start}$ to $v_{target}$ }
+\item{The paths belonging to $\PathSet$ must be bounded in length with respect to $\Path_{1}$. Formally:
+\begin{equation} 
+\forall \Path_{i} \in \PathSet, \left | \Path_{i} \right | \leq \alpha \left| \Path_{1} \right |, \alpha \geq 1, \forall i \in <1, k ] 
+\label{eq:LengthBound}
+\end{equation}
+
+This condition imposes a constraint on the maximum length of candidate paths}
+\item{Each path $\Path_{i}$ is as far as possible from its predecessors in $\PathSequence$. The metric to express this distance is the $\AddedDistance$:
+	\begin{equation}
+		\Path_{i} = \argmax_{\Path_{i}}  \{ \AddedDistance ( \Path_{i}, \{ \Path _{1},...\Path _{i-1} \} ) \}
+		\label{eq:MaxDistance}	
+	\end{equation}
+}
+
+\end{itemize}
+\end{definition}
+
+In the next section, we present an algorithm to systematically build $\PathSet$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Section
+\section{Algorithm}
+Let us formulate the problem as an \emph{optimization problem}, and then we will intuitively derive the algorithm presented.
+
+Assume you have two functions $f(.)$ and $g(.)$ defined on $Q$:
+
+\[ \begin{array}{l}
+	f: Q \rightarrow \mathbb{R} \\
+	g: Q \rightarrow \mathbb{R}
+	\end{array}
+\]	
+
+where we define $Q$ as the set of all possible paths joining $v_{start}$ and $v_{goal}$. Further, let say we want to find a path $q \in Q$ such that it maximize the value of $f(q)$ under the constraint that $c \geq g(q)$.
+\smallskip
+
+In general, our problem can be formulated, by using Lagrange multipliers as :
+
+\[ J(\Path) = f(\Path) + \lambda (c - g(\Path) ) \]
+
+
+where we want to maximize the \emph{cost} $J(\Path)$. We can express this as a \emph{minimization problem} by switching signs:
+
+\begin{equation} 
+J(\Path) = -f(\Path) - \lambda(c - g(\Path)) 
+\label{eq:GeneralLagrangeMinimize}
+\end{equation}
+
+So now our goal is to minimize $J(\Path)$. For our specific problem, our goal is to find a sequence of paths such that the path $\Path_{i+1}$ maximize the distance between itself and the previous paths. Formally speaking we can define $f(.)$ as:
+
+\[ f(\Path_{i+1}) =  \AddedDistance ( \Path_{i+1}, \PathSet_{i} ) \]
+
+where
+
+\[ \PathSet_{i} = \{ \Path _{1},...\Path _{i} \} \]
+
+and $g(\Path_{i})$ is the cardinality of the path (representing its length):
+
+\[ g(\Path_{i+1}) = \mid \Path_{i+1} \mid \]
+
+and $c$ represents the upper bound of length required. Hence, we can rewrite Equation (\ref{eq:GeneralLagrangeMinimize}) for our particular problem as:
+
+\[ J(\Path_{i+1}) = -\AddedDistance ( \Path_{i+1}, \PathSet_{i} ) - \lambda(c - \mid \Path_{i+1} \mid ) \]
+
+\[ J(\Path_{i+1}) = - \sum _{k = 1}^{|\Path_{i+1}|} \VertexSetDistance({p_{i+1}}_{k}, \PathSet_{i})  - \lambda(c - \mid \Path_{i+1} \mid ) \]
+
+\[ J(\Path_{i+1}) = - \sum _{k = 1}^{|\Path_{i+1}|} \VertexSetDistance({p_{i+1}}_{k}, \PathSet_{i}) + \mid \Path_{i+1} \mid \Dmax -\mid \Path_{i+1} \mid \Dmax   - \lambda(c - \mid \Path_{i+1} \mid ) \]
+
+\[ J(\Path_{i+1}) = \sum _{k = 1}^{|\Path_{i+1}|} \{ \Dmax - \VertexSetDistance({p_{i+1}}_{k}, \PathSet_{i}) \} -\mid \Path_{i+1} \mid \Dmax   - \lambda(c - \mid \Path_{i+1} \mid ) \]
+
+\[ J(\Path_{i+1}) = \sum _{k = 1}^{|\Path_{i+1}|} \{ \Dmax - \VertexSetDistance({p_{i+1}}_{k}, \PathSet_{i}) \} + \mid \Path_{i+1} \mid(\lambda - \Dmax ) - c\lambda \]
+
+$c$ is a constant and $\lambda$ is a parameter, so minimizing the expression above is equivalent to minimize:
+
+\[ J(\Path_{i+1}) = \sum _{k = 1}^{|\Path_{i+1}|} \{ \Dmax - \VertexSetDistance({p_{i+1}}_{k}, \PathSet_{i}) \} + (\lambda - \Dmax )\mid \Path_{i+1} \mid \]
+
+if $(\lambda - \Dmax) = \alpha$:
+
+\[ J(\Path_{i+1}) = \sum _{k = 1}^{|\Path_{i+1}|} \{ \Dmax - \VertexSetDistance({p_{i+1}}_{k}, \PathSet_{i}) \} + \alpha\mid \Path_{i+1} \mid \]
+
+this is the cost we aim to minimize. We further restrict:
+
+\[ \lambda > \Dmax \rightarrow \alpha > 0 \]
+
+to make sure that the cost of a path $J(\Path_{i+1})$ is always positive. Now, what we want is to get an expression for the cost of a path based on the cost of each individual node composing the path, since this would let us find the path based on graph-search techniques. We start by inserting the $\alpha$ factor inside the sum:
+
+
+\[ J(\Path_{i+1}) = \sum _{k = 1}^{|\Path_{i+1}|} \{ \Dmax - \VertexSetDistance({p_{i+1}}_{k}, \PathSet_{i}) + \alpha \times 1 \}  \]
+
+\[ J(\Path_{i+1}) = \sum _{k = 1}^{|\Path_{i+1}|} \{ ( \Dmax - \VertexSetDistance({p_{i+1}}_{k}, \PathSet_{i}) ) + \alpha \times 1 \}  \]
+
+
+from what we can see that the cost of a path is made up of the sum of the cost of each node, in which, for \emph{each node} $n \in \Path_{i+1}$, the \emph{node cost} is represented by:
+
+\begin{equation} 
+Cost(n) = \Dmax - \VertexSetDistance(n, \PathSet_{i}) + \alpha \times 1 
+\label{eq:NodeCost}
+\end{equation}
+
+From Eq.(\ref{eq:NodeCost}), we can conclude that  the cost of a node is the sum of two separate costs:
+
+\begin{itemize}
+\item{ \textbf{The distance cost}:
+\[ \Dmax - \VertexSetDistance(n, \PathSet_{i}) \]
+which can be understood as a penalization of \emph{how close} a node is to the set of existing paths $\PathSet_{i}$}
+\item{ \textbf{The length cost:}
+\[ \alpha \times 1 \]
+which represents the penalization for the length added per each node. $\alpha$ can be understood as the importance factor of the length constraint with respect to the overall minimization problem. In the results section we will discuss the effect that the variation of $\alpha$ has in the set of paths produced.}
+\end{itemize}
+\medskip
+
+From the expressions above, it is easily seen that the costs of each node are always positive, hence we can apply a graph-search algorithm to find the paths, according to the cost expressions just defined. The algorithm is shown: 
+
+% -------------------------------------
+% FindSequencePaths Algorithm
+
+\begin{algorithm}
+\caption{ Find-Sequence-Paths($\VertexSet$, $\EdgeSet$, $k$, $v_{start}$, $v_{target}$) }
+\dontprintsemicolon
+\SetKwFunction{ResetSearch}{ResetSearch()}
+\SetKwFunction{FindPath}{FindPath}
+\SetKwFunction{UpdateNodeValues}{UpdateNodeValues}
+
+\BlankLine
+
+$\PathSet = \emptyset $ \;
+\ResetSearch \;
+\BlankLine
+
+\For{$i \leftarrow 1$ \KwTo $k$}{
+	$\Path_{i}$ = \FindPath{$v_{start}$,$v_{target}$} \;
+	\PathSet.\FuncSty{add($\Path_{i}$)} \;
+	\ResetSearch \;
+	\UpdateNodeValues{$\PathSet$} \; 	
+}
+\Return \PathSet \;
+\label{alg:FindVarietyPath}
+\end{algorithm}
+
+% -----------------------------------
+% Reset Algorithm -- lame
+\begin{algorithm}
+\ForAll{$v \in \VertexSet$}{
+	$v.\FuncSty{costF} \leftarrow \infty$ \;
+	$v.\FuncSty{costG} \leftarrow \infty$ \;
+	$v.\FuncSty{costH} \leftarrow \infty$ \;
+	$v.\FuncSty{status} \leftarrow \textsc{NO\_VISITED}$ \;
+	$v.\FuncSty{value} \leftarrow 0$ \;
+}
+
+$\ArgSty{OpenSet} \leftarrow \emptyset$
+\caption{ \FuncSty{ResetSearch()} }
+\end{algorithm}
+
+% ----------------------------------------
+% FindPath Algorithm
+\begin{algorithm}
+\SetKwFunction{PushOpenSet}{PushOpenSet}
+\SetKwFunction{PopOpenSet}{PopOpenSet}
+\SetKwFunction{ReorderOpenSet}{ReorderOpenSet}
+\SetKwFunction{BacktracePath}{BacktracePath}
+\SetKwFunction{EdgeCost}{EdgeCost}
+\SetKwFunction{HeuristicCost}{HeuristicCost}
+\BlankLine
+
+$v_{start}.\FuncSty{costG} \leftarrow 0$ \;
+$v_{start}.\FuncSty{costH} \leftarrow v.\FuncSty{Heuristic}(v_{target})$ \;
+$v_{start}.\FuncSty{costF} \leftarrow v_{start}.\FuncSty{costG} + v_{start}.\FuncSty{costH}$\;
+$v_{start}.\FuncSty{parent} \leftarrow -1$
+\BlankLine
+\PushOpenSet{$v_{start}$} \;
+$\ArgSty{iter} \leftarrow 0$ \;
+
+\While{ \ArgSty{OpenSet} $\neq \emptyset$ }{
+	\BlankLine 
+	$v = \PopOpenSet{}$ \;
+	\BlankLine
+	\If(){$v == v_{target}$}{
+     	\BacktracePath{x} \;
+     	\FuncSty{break} \;	
+	}
+    $v.\FuncSty{status} \leftarrow \textsc{IN\_CLOSED\_SET} $ \;
+    
+    \ForAll{ $v_{n} \in v.\FuncSty{neighbors}$}{
+    	\If{$v_{n}.\FuncSty{status} == IN\_CLOSED\_SET$}{ \FuncSty{continue} \; }
+    	$\FuncSty{costG}^{\prime} \leftarrow v.\FuncSty{costG} +$ \EdgeCost{$v,v_{n}$} $\times (v_{n}.\FuncSty{value} + \alpha \times 1)$ \; 
+    	\If{$v_{n}.\FuncSty{status} \neq IN\_OPEN\_SET$}{
+    		$v_{n}.\FuncSty{parent} \leftarrow v $ \;
+    		$v_{n}.\FuncSty{costG} \leftarrow \FuncSty{costG}^{\prime}$ \;
+    		$v_{n}.\FuncSty{costH} \leftarrow$ \HeuristicCost{$v_{n}$,$v_{target}$} $\times ( 0 + \alpha \times 1 )$ \;
+    		$v_{n}.\FuncSty{costF} \leftarrow .\FuncSty{costG} + .\FuncSty{costH}$	 \;
+    		\PushOpenSet{$v_{n}$} \;
+    	}
+    	\Else{
+    		\If{ $\FuncSty{costG}^{\prime} < v_{n}.\FuncSty{costG}$ }{
+    			$v_{n}.\FuncSty{parent} \leftarrow v $ \;
+    			$v_{n}.\FuncSty{costG} \leftarrow \FuncSty{costG}^{\prime} $ \;
+    			$v_{n}.\FuncSty{costH} \leftarrow$  \HeuristicCost{$v_{n}$, $v_{target}$} $\times (0+ \alpha \times 1)$
+    			$v_{n}.\FuncSty{costF} \leftarrow .\FuncSty{costG} + .\FuncSty{costH}$	 \;
+    		    \ReorderOpenSet{$v_{n}$} \;
+    		}
+    	}
+    }
+}
+\caption{ \FuncSty{FindPath($v_{start}$,$v_{target}$)} }
+\end{algorithm}
+
+% -------------------------------
+% UpdateNodeValues
+\begin{algorithm}
+\SetKwFunction{Brushfire}{Brushfire}
+
+\Brushfire{$\VertexSet$, $\PathSet$} \;
+\ArgSty{$dist_{max}$} $\leftarrow \argmax_{v_{i} \in \VertexSet} \{ v_{i}.\FuncSty{distance} \}$ \;
+\BlankLine
+\ForAll {$v \in \VertexSet$ }{
+	$v.\FuncSty{value} \leftarrow \dfrac{dist_{max} - v.\FuncSty{distance}}{dist_{max}}$ \;
+}
+\caption{\FuncSty{Update-Node-Values($\PathSet$)}}
+\end{algorithm}
+
+% ----------------------------------------------
+% Brushfire Algorithm
+\begin{algorithm}
+
+\caption{ \FuncSty{Brushfire($\VertexSet$, $\PathSet$)} }
+\end{algorithm}
+
+% ------------------------------------------------
+% Experiments
+\section{Experiments}
+
+% ...............................................
+% Experiment 1
+\begin{figure}[]
+		\centering
+		  \subfigure[Setup 1]{
+		   \includegraphics[width=0.3\textwidth]{figures/Experiment1_Setup.png} 
+		   \label{fig:Exp1-Setup}
+          }
+          \subfigure[Path 1]{
+	       \includegraphics[width=0.3\textwidth]{figures/Experiment1_Path1.png} 	
+	       \label{fig:Exp1-Path1}
+          } \\
+		  \subfigure[Path 2]{
+		   \includegraphics[width=0.3\textwidth]{figures/Experiment1_Path2.png} 
+		   \label{fig:Exp1-Path2}
+          }          
+          \subfigure[Path 3]{
+	       \includegraphics[width=0.3\textwidth]{figures/Experiment1_Path3.png} 	
+	       \label{fig:Exp1-Path3}
+          }
+\caption{Experiment 1 with $\alpha = 0.5$. The path in Fig.\ref{fig:Exp1-Path1} is the shortest one. Path \ref{fig:Exp1-Path2} and \ref{fig:Exp1-Path3} are the next found }
+\end{figure}
+
+
+% ...............................................
+% Experiment 2
+\begin{figure}[]
+		\centering
+		  \subfigure[Setup 2]{
+		   \includegraphics[width=0.3\textwidth]{figures/Experiment2_Setup.png} 
+		   \label{fig:Exp2-Setup}
+          }
+          \subfigure[Path 1]{
+	       \includegraphics[width=0.3\textwidth]{figures/Experiment2_Path1.png} 	
+	       \label{fig:Exp2-Path1}
+          } \\
+		  \subfigure[Path 2]{
+		   \includegraphics[width=0.3\textwidth]{figures/Experiment2_Path2.png} 
+		   \label{fig:Exp2-Path2}
+          }          
+          \subfigure[Path 3]{
+	       \includegraphics[width=0.3\textwidth]{figures/Experiment2_Path3.png} 	
+	       \label{fig:Exp2-Path3}
+          }
+          \subfigure[Path 4]{
+	       \includegraphics[width=0.3\textwidth]{figures/Experiment2_Path4.png} 	
+	       \label{fig:Exp2-Path4}
+          }
+\caption{Experiment 2 with $\alpha = 0.01$ }
+\end{figure}
+
+
+% ...............................................
+% Experiment 3
+\begin{figure}[]
+		\centering
+		  \subfigure[Setup 3]{
+		   \includegraphics[width=0.4\textwidth]{figures/Experiment3_Setup.png} 
+		   \label{fig:Exp3-Setup}
+          }\\
+		  \subfigure[Path 1]{
+		   \includegraphics[width=0.4\textwidth]{figures/Experiment3_Path1.png} 
+		   \label{fig:Exp3-Path1}
+          }          
+          \subfigure[Path 2]{
+	       \includegraphics[width=0.4\textwidth]{figures/Experiment3_Path2.png} 	
+	       \label{fig:Exp3-Path2}
+          }
+\caption{Experiment 3 with $\alpha = 0.01$ }
+\end{figure}
+
+% ...............................................
+% Experiment 3
+\begin{figure}[]
+		\centering
+		  \subfigure[Setup 4]{
+		   \includegraphics[width=0.2\textwidth]{figures/Experiment4_Setup.png} 
+		   \label{fig:Exp4-Setup}
+          }
+		  \subfigure[Path 1]{
+		   \includegraphics[width=0.33\textwidth]{figures/Experiment4_Path1.png} 
+		   \label{fig:Exp4-Path1}
+          }          
+          \subfigure[Path 2]{
+	       \includegraphics[width=0.33\textwidth]{figures/Experiment4_Path2.png} 	
+	       \label{fig:Exp4-Path2}
+          }
+\caption{Experiment 4 with $\alpha = 0.01$ }
+\end{figure}
+
+
+% -------------------------------------------------
+% Conclusions
+\section{Conclusions}
+
+% --------------------------------------------------
+% Acknowledgments
+\section{Acknowledgments}
+We thank to all people who gave feedback during the writing process.
+
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
